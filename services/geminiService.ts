@@ -244,15 +244,12 @@ export const generateImage = async (prompt: string): Promise<ImageData> => {
 
     const generatedImage = response.generatedImages?.[0];
 
-    // FIX: The `GeneratedImage` type does not have `finishReason` or `safetyRatings` properties, causing errors on lines 249-250.
-    // The safety check has been corrected to use `response.promptFeedback` when no image is returned.
+    // FIX: The `GenerateImagesResponse` type does not have the `promptFeedback` property.
+    // The safety check has been updated to provide a generic error when no image is returned,
+    // which can happen if the prompt violates safety policies.
     if (!generatedImage?.image?.imageBytes) {
-      if (response.promptFeedback?.blockReason) {
-        const safetyRatings = response.promptFeedback.safetyRatings ? JSON.stringify(response.promptFeedback.safetyRatings) : 'No details provided.';
-        throw new Error(`Image generation was blocked for safety reasons. Please adjust your prompt. Details: ${safetyRatings}`);
-      }
-      console.error("Invalid API response structure for image generation.", response);
-      throw new Error("The AI did not return an image. Please try again.");
+      console.error("Invalid API response structure for image generation, or generation was blocked.", response);
+      throw new Error("The AI did not return an image. This could be due to a safety policy violation. Please adjust your prompt and try again.");
     }
 
     return {
