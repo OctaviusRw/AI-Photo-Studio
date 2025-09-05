@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality, GenerateContentResponse, Type } from "@google/genai";
 import { ImageData } from '../types';
 
@@ -39,6 +38,9 @@ export const editImageWithPrompt = async (
     if (candidate?.finishReason === 'SAFETY') {
       const safetyRatings = candidate.safetyRatings ? JSON.stringify(candidate.safetyRatings) : 'No details provided.';
       throw new Error(`Edit was blocked for safety reasons. Please adjust your prompt. Details: ${safetyRatings}`);
+    }
+    if (candidate?.finishReason === 'PROHIBITED_CONTENT') {
+      throw new Error('Your request was blocked because the content is prohibited. Please modify your prompt or image.');
     }
     
     if (!candidate && response.promptFeedback?.blockReason) {
@@ -126,6 +128,9 @@ export const eraseImageWithMask = async (
     if (candidate?.finishReason === 'SAFETY') {
       const safetyRatings = candidate.safetyRatings ? JSON.stringify(candidate.safetyRatings) : 'No details provided.';
       throw new Error(`Edit was blocked for safety reasons. Details: ${safetyRatings}`);
+    }
+    if (candidate?.finishReason === 'PROHIBITED_CONTENT') {
+      throw new Error('Your request was blocked because the content is prohibited. Please modify your prompt or image.');
     }
     
     if (!candidate && response.promptFeedback?.blockReason) {
