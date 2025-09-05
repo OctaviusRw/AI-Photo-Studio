@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality, GenerateContentResponse, Type } from "@google/genai";
 import { ImageData } from '../types';
 
@@ -143,6 +144,7 @@ export const eraseImageWithMask = async (
       if (part.inlineData) {
         editedImage = {
           base64: part.inlineData.data,
+          // FIX: Corrected property from `mime` to `mimeType` to fix error on line 146.
           mimeType: part.inlineData.mimeType,
         };
       } else if (part.text) {
@@ -221,5 +223,48 @@ export const getEditingSuggestions = async (image: ImageData): Promise<string[]>
     // Don't throw a fatal error, just return an empty array so the app doesn't crash
     // The UI can show a message that suggestions couldn't be loaded.
     return [];
+  }
+};
+
+export const generateImage = async (prompt: string): Promise<ImageData> => {
+  try {
+    if (!prompt.trim()) {
+      throw new Error("Prompt cannot be empty.");
+    }
+
+    const response = await ai.models.generateImages({
+      model: 'imagen-4.0-generate-001',
+      prompt: prompt,
+      config: {
+        numberOfImages: 1,
+        outputMimeType: 'image/png',
+        aspectRatio: '1:1',
+      },
+    });
+
+    const generatedImage = response.generatedImages?.[0];
+
+    // FIX: The `GeneratedImage` type does not have `finishReason` or `safetyRatings` properties, causing errors on lines 249-250.
+    // The safety check has been corrected to use `response.promptFeedback` when no image is returned.
+    if (!generatedImage?.image?.imageBytes) {
+      if (response.promptFeedback?.blockReason) {
+        const safetyRatings = response.promptFeedback.safetyRatings ? JSON.stringify(response.promptFeedback.safetyRatings) : 'No details provided.';
+        throw new Error(`Image generation was blocked for safety reasons. Please adjust your prompt. Details: ${safetyRatings}`);
+      }
+      console.error("Invalid API response structure for image generation.", response);
+      throw new Error("The AI did not return an image. Please try again.");
+    }
+
+    return {
+      base64: generatedImage.image.imageBytes,
+      mimeType: 'image/png',
+    };
+
+  } catch (error) {
+    console.error("Error generating image with Gemini API:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("An unknown error occurred while communicating with the AI for image generation.");
   }
 };

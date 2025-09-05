@@ -194,13 +194,34 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   };
 
   const downloadImage = () => {
-    if (!editedImage) return;
-    const link = document.createElement('a');
-    link.href = `data:${editedImage.mimeType};base64,${editedImage.base64}`;
-    link.download = 'edited-photo.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const imageToDownload = activeImage;
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        // Force the download to be a PNG format
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = editedImage ? 'edited-photo.png' : 'original-photo.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        console.error("Failed to create canvas context for downloading.");
+      }
+    };
+    img.onerror = () => {
+      console.error("Failed to load image for downloading.");
+    };
+    
+    img.src = `data:${imageToDownload.mimeType};base64,${imageToDownload.base64}`;
   };
   
   return (
@@ -235,11 +256,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       {!isDrawingMode && <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
         {editedImage ? 'Edited Image' : 'Original Image'}
       </div>}
-      {editedImage && !isDrawingMode && (
+      {!isDrawingMode && (
         <button 
           onClick={downloadImage}
           className="absolute top-4 right-4 bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-lg transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 z-20"
-          aria-label="Download edited image"
+          aria-label="Download image"
           >
           <DownloadIcon className="w-5 h-5" />
         </button>
