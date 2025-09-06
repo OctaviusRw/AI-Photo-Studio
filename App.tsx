@@ -39,7 +39,11 @@ function App() {
         const result = await getEditingSuggestions(image);
         setSuggestions(result);
     } catch (e) {
-        setError("Could not load AI suggestions. Please try again.");
+        if (e instanceof Error) {
+            setError(e.message);
+        } else {
+            setError("Could not load AI suggestions. Please try again.");
+        }
         setSuggestions([]);
     } finally {
         setIsSuggesting(false);

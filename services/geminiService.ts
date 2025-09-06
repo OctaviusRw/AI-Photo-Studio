@@ -83,6 +83,9 @@ export const editImageWithPrompt = async (
 
   } catch (error) {
     console.error("Error editing image with Gemini API:", error);
+    if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+        throw new Error("You've exceeded your API request quota. Please check your plan and billing details.");
+    }
     // Re-throw the error so it can be caught and displayed by the UI
     if (error instanceof Error) {
         throw error;
@@ -170,6 +173,9 @@ export const eraseImageWithMask = async (
 
   } catch (error) {
     console.error("Error during Magic Erase with Gemini API:", error);
+    if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+        throw new Error("You've exceeded your API request quota. Please check your plan and billing details.");
+    }
     if (error instanceof Error) {
         throw error;
     }
@@ -179,6 +185,8 @@ export const eraseImageWithMask = async (
 
 export const getEditingSuggestions = async (image: ImageData): Promise<string[]> => {
   try {
+    // Updated prompt to request a simple text list instead of JSON, which is more robust
+    // for multimodal inputs and avoids potential internal API errors.
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: {
@@ -190,44 +198,41 @@ export const getEditingSuggestions = async (image: ImageData): Promise<string[]>
             },
           },
           {
-            text: "Analyze this image and provide 3 distinct, creative editing suggestions. The suggestions should be concise and phrased as commands an AI image editor can execute. For example: 'Change the background to a snowy mountain range' or 'Add a vintage film effect'.",
+            text: "Analyze this image and provide 3 distinct, creative editing suggestions. The suggestions should be concise and phrased as commands an AI image editor can execute. For example: 'Change the background to a snowy mountain range' or 'Add a vintage film effect'. Return the suggestions as a simple list separated by newlines, without any numbering or markdown.",
           },
         ],
       },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            suggestions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.STRING,
-                description: "A creative editing suggestion phrased as a command."
-              }
-            }
-          },
-          required: ["suggestions"],
-        }
-      },
     });
 
-    const jsonText = response.text.trim();
-    if (!jsonText) {
-      throw new Error("AI returned an empty response for suggestions.");
+    const text = response.text.trim();
+    if (!text) {
+      console.warn("AI returned an empty response for suggestions.");
+      return [];
     }
 
-    const parsedResponse = JSON.parse(jsonText);
-    if (parsedResponse && Array.isArray(parsedResponse.suggestions)) {
-      return parsedResponse.suggestions.slice(0, 3); // Ensure we only take 3
-    }
+    // Parse the newline-separated list.
+    const suggestions = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 5); // Filter out empty lines or very short junk
 
-    throw new Error("Failed to parse suggestions from the AI response.");
+    if (suggestions.length > 0) {
+      return suggestions.slice(0, 3); // Ensure we only take up to 3
+    }
+    
+    console.warn("Failed to parse suggestions from the AI response:", text);
+    return [];
   } catch (error) {
     console.error("Error getting editing suggestions:", error);
-    // Don't throw a fatal error, just return an empty array so the app doesn't crash
-    // The UI can show a message that suggestions couldn't be loaded.
-    return [];
+    if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+        throw new Error("Couldn't load suggestions because the API quota was exceeded. Please check your plan and billing details.");
+    }
+    // Re-throw other errors to be caught by the UI.
+    // The previous implementation would silently fail, this makes it consistent with other API calls.
+    if (error instanceof Error) {
+        throw error;
+    }
+    throw new Error("An unknown error occurred while getting suggestions.");
   }
 };
 
@@ -264,6 +269,9 @@ export const generateImage = async (prompt: string): Promise<ImageData> => {
 
   } catch (error) {
     console.error("Error generating image with Gemini API:", error);
+    if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+        throw new Error("You've exceeded your API request quota. Please check your plan and billing details.");
+    }
     if (error instanceof Error) {
       throw error;
     }
