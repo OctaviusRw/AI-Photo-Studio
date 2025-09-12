@@ -1,6 +1,6 @@
 # AI Photo Studio 📸✨
 
-Welcome to AI Photo Studio, a powerful, web-based photo editing application powered by the Google Gemini API. This application allows you to upload photos, use your camera, or generate new images from scratch and transform them using a suite of intuitive, AI-driven tools.
+Welcome to AI Photo Studio, a powerful, web-based photo editing application powered by the Google Gemini API. This application allows you to upload photos or generate new images from scratch and transform them using a suite of intuitive, AI-driven tools.
 
 ![AI Photo Studio Screenshot](https://storage.googleapis.com/aistudio-hosting/readme_assets/ai-photo-studio-demo.gif)
 
@@ -8,7 +8,6 @@ Welcome to AI Photo Studio, a powerful, web-based photo editing application powe
 
 - **Multiple Image Sources**:
   - **Upload**: Drag & drop or select an image file from your device.
-  - **Camera**: Capture a photo directly within the app.
   - **Generate**: Create entirely new images from a text prompt using the `imagen-4.0-generate-001` model.
 - **AI-Powered Editing**:
   - **Prompt-Based Edits**: Describe the changes you want in plain English (e.g., "change the background to a snowy mountain").
