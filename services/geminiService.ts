@@ -236,7 +236,7 @@ export const getEditingSuggestions = async (image: ImageData): Promise<string[]>
   }
 };
 
-export const generateImage = async (prompt: string): Promise<ImageData> => {
+export const generateImage = async (prompt: string, aspectRatio: string): Promise<ImageData> => {
   try {
     if (!prompt.trim()) {
       throw new Error("Prompt cannot be empty.");
@@ -248,7 +248,7 @@ export const generateImage = async (prompt: string): Promise<ImageData> => {
       config: {
         numberOfImages: 1,
         outputMimeType: 'image/png',
-        aspectRatio: '1:1',
+        aspectRatio: aspectRatio,
       },
     });
 

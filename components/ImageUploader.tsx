@@ -8,12 +8,15 @@ interface ImageUploaderProps {
   onImageUpload: (imageData: ImageData) => void;
 }
 
+const aspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4'];
+
 export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   
   const [generatePrompt, setGeneratePrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<string>('1:1');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -70,7 +73,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
     setError(null);
     setIsGenerating(true);
     try {
-      const imageData = await generateImage(generatePrompt);
+      const imageData = await generateImage(generatePrompt, selectedAspectRatio);
       onImageUpload(imageData);
     } catch (e) {
       if (e instanceof Error) {
@@ -113,6 +116,22 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
       <div className={isGenerating ? 'opacity-50' : ''}>
         <h2 className="text-xl font-semibold text-gray-200 text-center mb-3">Generate a New Image</h2>
         <form onSubmit={handleGenerate}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-400 mb-2">Aspect Ratio</label>
+            <div className="flex justify-center gap-2 flex-wrap">
+              {aspectRatios.map((ratio) => (
+                <button
+                  key={ratio}
+                  type="button"
+                  onClick={() => setSelectedAspectRatio(ratio)}
+                  disabled={isGenerating}
+                  className={`px-4 py-2 text-sm font-mono rounded-md transition-colors disabled:opacity-50 ${selectedAspectRatio === ratio ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
+                >
+                  {ratio}
+                </button>
+              ))}
+            </div>
+          </div>
           <textarea
             value={generatePrompt}
             onChange={(e) => setGeneratePrompt(e.target.value)}
