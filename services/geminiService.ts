@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality, GenerateContentResponse, Type } from "@google/genai";
+import { GoogleGenAI, Modality, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { ImageData } from '../types';
 
 if (!process.env.API_KEY) {
@@ -6,6 +6,25 @@ if (!process.env.API_KEY) {
 }
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+];
 
 export const editImageWithPrompt = async (
   image: ImageData,
@@ -27,8 +46,10 @@ export const editImageWithPrompt = async (
           },
         ],
       },
+      // FIX: Moved safetySettings into the config object to resolve the type error.
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
+        safetySettings,
       },
     });
 
@@ -121,8 +142,10 @@ export const eraseImageWithMask = async (
           },
         ],
       },
+      // FIX: Moved safetySettings into the config object to resolve the type error.
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
+        safetySettings,
       },
     });
 
@@ -202,6 +225,14 @@ export const getEditingSuggestions = async (image: ImageData): Promise<string[]>
           },
         ],
       },
+      // FIX: Moved safetySettings into the config object to resolve the type error.
+      config: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        responseMimeType: "text/plain",
+        safetySettings,
+      },
     });
 
     const text = response.text.trim();
@@ -245,10 +276,12 @@ export const generateImage = async (prompt: string, aspectRatio: string): Promis
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',
       prompt: prompt,
+      // FIX: Moved safetySettings into the config object to resolve the type error.
       config: {
         numberOfImages: 1,
         outputMimeType: 'image/png',
         aspectRatio: aspectRatio,
+        safetySettings,
       },
     });
 
