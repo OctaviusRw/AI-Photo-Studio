@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useCallback } from 'react';
 import { ImageData } from './types';
-import { editImageWithPrompt, eraseImageWithMask, getEditingSuggestions } from './services/geminiService';
+import { editImageWithPrompt, eraseImageWithMask } from './services/geminiService';
 import { Header } from './components/Header';
 import { ImageUploader } from './components/ImageUploader';
 import { ImageViewer } from './components/ImageViewer';
@@ -21,10 +21,6 @@ function App() {
   const [brushSize, setBrushSize] = useState(40);
   const [isExtending, setIsExtending] = useState(false);
   
-  // Suggestions state
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isSuggesting, setIsSuggesting] = useState(false);
-
   const resetAllToolStates = () => {
     setIsErasing(false);
     setIsInpainting(false);
@@ -32,40 +28,14 @@ function App() {
     setInpaintPrompt('');
   };
 
-  const fetchSuggestions = useCallback(async (image: ImageData) => {
-    setIsSuggesting(true);
-    setError(null);
-    try {
-        const result = await getEditingSuggestions(image);
-        setSuggestions(result);
-    } catch (e) {
-        if (e instanceof Error) {
-            setError(e.message);
-        } else {
-            setError("Could not load AI suggestions. Please try again.");
-        }
-        setSuggestions([]);
-    } finally {
-        setIsSuggesting(false);
-    }
-  }, []);
-
   const handleImageUpload = useCallback((imageData: ImageData) => {
     setOriginalImage(imageData);
     setEditedImage(null);
     setError(null);
     setPrompt('');
     resetAllToolStates();
-    setSuggestions([]);
-    fetchSuggestions(imageData);
-  }, [fetchSuggestions]);
+  }, []);
   
-  const handleRefreshSuggestions = useCallback(() => {
-    if (originalImage) {
-        fetchSuggestions(originalImage);
-    }
-  }, [originalImage, fetchSuggestions]);
-
   const handleEdit = async (editPrompt: string) => {
     const imageToEdit = editedImage || originalImage;
     if (!imageToEdit) return;
@@ -261,7 +231,6 @@ function App() {
     setError(null);
     setPrompt('');
     resetAllToolStates();
-    setSuggestions([]);
   };
   
   const handleStartErase = () => {
@@ -331,9 +300,6 @@ function App() {
                 isExtending={isExtending}
                 onStartExtend={handleStartExtend}
                 onExtend={handleExtend}
-                suggestions={suggestions}
-                isSuggesting={isSuggesting}
-                onRefreshSuggestions={handleRefreshSuggestions}
               />
             </div>
           </div>

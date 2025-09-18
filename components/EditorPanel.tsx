@@ -8,7 +8,6 @@ import { ArrowPathIcon } from './icons/ArrowPathIcon';
 import { MagicEraseIcon } from './icons/MagicEraseIcon';
 import { MagicWandIcon } from './icons/MagicWandIcon';
 import { ArrowsOutIcon } from './icons/ArrowsOutIcon';
-import { ArrowClockwiseIcon } from './icons/ArrowClockwiseIcon';
 import { PaintBrushIcon } from './icons/PaintBrushIcon';
 
 interface EditorPanelProps {
@@ -28,9 +27,6 @@ interface EditorPanelProps {
   isExtending: boolean;
   onStartExtend: () => void;
   onExtend: (aspectRatio: number, name: string) => void;
-  suggestions: string[];
-  isSuggesting: boolean;
-  onRefreshSuggestions: () => void;
 }
 
 const quickEdits: QuickEdit[] = [
@@ -63,10 +59,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   onBrushSizeChange,
   isExtending,
   onStartExtend,
-  onExtend,
-  suggestions,
-  isSuggesting,
-  onRefreshSuggestions
+  onExtend
 }) => {
   const [prompt, setPrompt] = useState('');
 
@@ -77,11 +70,6 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     }
   };
   
-  const handleSuggestionClick = (suggestionPrompt: string) => {
-    setPrompt(suggestionPrompt);
-    onEdit(suggestionPrompt);
-  };
-
   const isToolActive = isErasing || isExtending || isInpainting;
   const isDrawingToolActive = isErasing || isInpainting;
 
@@ -145,42 +133,6 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       {isDrawingToolActive ? renderToolUI() : (
       <>
         <div className={isExtending ? 'opacity-50 pointer-events-none' : ''}>
-            <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold text-gray-100">AI Suggestions</h3>
-                <button 
-                    onClick={onRefreshSuggestions} 
-                    disabled={isLoading || isSuggesting}
-                    className="p-1.5 rounded-full hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Refresh suggestions"
-                >
-                    <ArrowClockwiseIcon className={`w-5 h-5 text-gray-300 ${isSuggesting ? 'animate-spin' : ''}`} />
-                </button>
-            </div>
-             <div className="space-y-2">
-                {isSuggesting ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="w-full h-10 bg-gray-700 rounded-lg animate-pulse"></div>
-                    ))
-                ) : suggestions.length > 0 ? (
-                    suggestions.map((suggestion, index) => (
-                        <button
-                            key={index}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            disabled={isLoading || isToolActive}
-                            className="w-full text-left px-4 py-2 bg-gray-700 rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm text-gray-200"
-                        >
-                            {suggestion}
-                        </button>
-                    ))
-                ) : (
-                     <div className="text-center py-4 text-sm text-gray-400">
-                        No suggestions available. Try refreshing!
-                    </div>
-                )}
-            </div>
-        </div>
-        
-        <div className={`border-t border-gray-700 pt-6 ${isExtending ? 'opacity-50 pointer-events-none' : ''}`}>
             <h3 className="text-lg font-semibold text-gray-100 mb-3">Describe Your Edit</h3>
             <form onSubmit={handlePromptSubmit}>
                 <textarea

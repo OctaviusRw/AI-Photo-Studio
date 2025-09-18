@@ -206,67 +206,6 @@ export const eraseImageWithMask = async (
   }
 };
 
-export const getEditingSuggestions = async (image: ImageData): Promise<string[]> => {
-  try {
-    // Updated prompt to request a simple text list instead of JSON, which is more robust
-    // for multimodal inputs and avoids potential internal API errors.
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              data: image.base64,
-              mimeType: image.mimeType,
-            },
-          },
-          {
-            text: "Analyze this image and provide 3 distinct, creative editing suggestions. The suggestions should be concise and phrased as commands an AI image editor can execute. For example: 'Change the background to a snowy mountain range' or 'Add a vintage film effect'. Return the suggestions as a simple list separated by newlines, without any numbering or markdown.",
-          },
-        ],
-      },
-      // FIX: Moved safetySettings into the config object to resolve the type error.
-      config: {
-        temperature: 1,
-        topP: 0.95,
-        topK: 40,
-        responseMimeType: "text/plain",
-        safetySettings,
-      },
-    });
-
-    const text = response.text.trim();
-    if (!text) {
-      console.warn("AI returned an empty response for suggestions.");
-      return [];
-    }
-
-    // Parse the newline-separated list.
-    const suggestions = text
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 5); // Filter out empty lines or very short junk
-
-    if (suggestions.length > 0) {
-      return suggestions.slice(0, 3); // Ensure we only take up to 3
-    }
-    
-    console.warn("Failed to parse suggestions from the AI response:", text);
-    return [];
-  } catch (error) {
-    console.error("Error getting editing suggestions:", error);
-    if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
-        throw new Error("Couldn't load suggestions because the API quota was exceeded. Please check your plan and billing details.");
-    }
-    // Re-throw other errors to be caught by the UI.
-    // The previous implementation would silently fail, this makes it consistent with other API calls.
-    if (error instanceof Error) {
-        throw error;
-    }
-    throw new Error("An unknown error occurred while getting suggestions.");
-  }
-};
-
 export const generateImage = async (prompt: string, aspectRatio: string): Promise<ImageData> => {
   try {
     if (!prompt.trim()) {
@@ -276,12 +215,13 @@ export const generateImage = async (prompt: string, aspectRatio: string): Promis
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',
       prompt: prompt,
-      // FIX: Moved safetySettings into the config object to resolve the type error.
+      // FIX: Moved safetySettings outside the config object to resolve the type error.
+      // `safetySettings` is a top-level parameter for the `generateImages` method, not part of `config`.
+      safetySettings,
       config: {
         numberOfImages: 1,
         outputMimeType: 'image/png',
         aspectRatio: aspectRatio,
-        safetySettings,
       },
     });
 
