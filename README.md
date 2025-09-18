@@ -6,26 +6,29 @@ Welcome to AI Photo Studio, a powerful, web-based photo editing application powe
 
 ## ✨ Key Features
 
-- **Multiple Image Sources**:
-  - **Upload**: Drag & drop or select an image file from your device.
-  - **Generate**: Create entirely new images from a text prompt using the `imagen-4.0-generate-001` model.
-- **AI-Powered Editing**:
-  - **Prompt-Based Edits**: Describe the changes you want in plain English (e.g., "change the background to a snowy mountain").
-  - **AI Suggestions**: Get creative editing ideas tailored to your specific image.
-- **Advanced Tools**:
-  - **Magic Erase**: Simply draw over an object or imperfection to remove it seamlessly.
-  - **Inpainting**: Select an area and describe what you want to add or change within it.
-  - **Extend Image**: Expand the canvas of your photo in various aspect ratios, and the AI will generatively fill the new space.
+- **Dual Image Sources**:
+  - **Upload Your Photo**: Drag & drop or select an image file from your device to begin editing.
+  - **Generate with AI**: Create entirely new, high-quality images from a simple text prompt. Describe your vision, choose an aspect ratio, and let the AI bring it to life.
+
+- **Intuitive AI Editing Suite**:
+  - **Prompt-Based Edits**: Modify your image by describing the changes you want in plain English. For example, "change the background to a beach at sunset" or "make the lighting more dramatic."
+  - **Magic Erase**: Seamlessly remove unwanted objects, people, or imperfections by simply drawing over them.
+  - **Inpainting**: Select an area of your image and tell the AI what to add or replace it with, from adding new objects to changing clothing.
+  - **Extend Image (Outpainting)**: Expand the canvas of your photo in various aspect ratios. The AI intelligently generates new content to fill the empty space, matching the style of the original image.
+
 - **User-Friendly Interface**:
-  - A clean, responsive, and modern UI built with Tailwind CSS.
+  - A clean, responsive, and modern UI built with React and Tailwind CSS.
   - Instantly see your changes and compare them with the original image.
-  - Download your final creation in high-quality PNG format.
+  - Download your final creation as a high-quality PNG file.
 
 ## 🚀 Tech Stack
 
 - **Frontend**: [React](https://react.dev/) & [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **AI Model**: [Google Gemini API](https://ai.google.dev/docs/gemini_api_overview) (`@google/genai`) for all image manipulation and generation tasks.
+- **Google AI**:
+  - **SDK**: [`@google/genai`](https://www.npmjs.com/package/@google/genai) for JavaScript.
+  - **Image Generation Model**: `imagen-4.0-generate-001` is used to create new images from text.
+  - **Image Editing Model**: `gemini-2.5-flash-image-preview` powers all in-image modifications, including prompt-based edits, erasing, inpainting, and extending.
 
 ## ☁️ Deployment
 
